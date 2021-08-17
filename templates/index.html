@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel='stylesheet' href='css/common.css'>
+
+    <title>Index</title>
+  </head>
+  <body>
+    <header>
+      3d Scene Viewer
+      </header>
+<table>
+    <tbody>
+  {% for scene in scenes %}
+    <tr>
+      <td><a href="/view?scene={{scene}}">{{scene}}</a></td>
+      
+    </tr>
+  {% endfor %}
+    </tbody>
+    </table>
+<hr>
+    <form method="post" enctype="multipart/form-data">
+  <input type="file" name="files[]" multiple />
+  <input type="submit" value="Upload File" name="submit" />
+    </form>
+    <script>
+// Define processing URL and form element
+const url = 'process'
+const form = document.querySelector('form')
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault()
+
+  const files = document.querySelector('[type=file]').files
+  const formData = new FormData()
+
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i]
+
+    formData.append('files[]', file)
+  }
+
+  fetch(url, {
+    method: 'POST',
+    body: formData,
+  }).then((response) => {
+    console.log(response)
+  })
+})
+    </script>
+  </body>
+</html>
