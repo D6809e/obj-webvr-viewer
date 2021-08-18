@@ -53,5 +53,5 @@ def serve_page(path):
 
 if __name__ == '__main__':
     context = ('cert.pem', 'key.pem')
-    app.run(host="0.0.0.0",port=8080, debug=True,ssl_context=context)
+    app.run(host="0.0.0.0",port=8080, ssl_context=context)
     
