@@ -24,6 +24,8 @@ def view():
 @app.route('/process', methods=['POST'])
 def do_post():
     print("Uploading files..")
+    if not os.path.isdir('TMP'):
+        os.mkdir('TMP')
     for file in request.files.getlist('files[]'):
         print(file.filename)
         file.save('TMP/'+file.filename)
