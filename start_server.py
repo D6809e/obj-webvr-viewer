@@ -4,6 +4,55 @@ from flask import Flask,render_template,request,redirect,url_for,send_file
 import os
 from glob import glob
 import subprocess
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization,hashes
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+import datetime
+
+
+
+def create_key():
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+    with open("key.pem", "wb") as f:
+        f.write(key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        ))
+    return(key)
+
+def create_cert(key):
+    subject = issuer = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, u"GB"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u""),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, u""),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"obj-webvr-viewer"),
+        x509.NameAttribute(NameOID.COMMON_NAME, u"https://github.com/D6809e/obj-webvr-viewer"),
+    ])
+    cert = x509.CertificateBuilder().subject_name(
+        subject
+    ).issuer_name(
+        issuer
+    ).public_key(
+        key.public_key()
+    ).serial_number(
+        x509.random_serial_number()
+    ).not_valid_before(
+        datetime.datetime.utcnow()
+    ).not_valid_after(
+        datetime.datetime.utcnow() + datetime.timedelta(days=10)
+    ).add_extension(
+        x509.SubjectAlternativeName([x509.DNSName(u"localhost")]),
+        critical=False,
+    ).sign(key, hashes.SHA256())
+    with open("cert.pem", "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+    return(cert)
+
 
 app = Flask(__name__)
 
@@ -52,6 +101,8 @@ def serve_page(path):
 
 
 if __name__ == '__main__':
+    key=create_key()
+    create_cert(key)
     context = ('cert.pem', 'key.pem')
     app.run(host="0.0.0.0",port=8080, ssl_context=context)
     
